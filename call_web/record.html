@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>外呼管理—外呼记录</title>
+    <link rel="stylesheet" href="css/common/reset.css">
+    <link rel="stylesheet" href="css/elementui.css">
+    <link rel="stylesheet" href="css/common/nav_header.css" />
+    <style>
+        /* #box {
+            padding: 150px 0 0;
+            width: 1800px;
+            margin: 0 auto;
+            background-size: contain;
+            position: relative;
+        } */
+
+        .clearfix:after {
+            content: '';
+            font-size: 0;
+            display: block;
+            height: 0;
+            overflow: hidden;
+        }
+
+        [v-cloak] {
+            display: none
+        }
+
+        .el-form--inline .el-form-item.item-mr {
+            margin-right: 20px;
+            margin-bottom: 0;
+        }
+        .hangupPosition .el-form-item__label{
+            float: left;
+            padding: 11px 0;
+        }
+        .hangupPosition .el-form-item__content{
+            float: left;
+            width: 400px;
+        }
+        #adviser{
+            position: absolute;
+            top:100px;
+            right: 30px;
+        }
+        #box .quit{
+            color: red;
+            cursor: pointer;
+        }
+        .toolbar {
+            background: #f2f2f2;
+            padding: 10px;
+            margin: 10px 0px;
+        }
+        .comSty{width: inherit;}
+    </style>
+
+    <!---->
+    <script src="js/vue.js"></script>
+    <script src="js/elementui.js"></script>
+    <script src="js/common/header.js"></script>
+    <script src="js/common/nav.js"></script>
+</head>
+<body>
+<div id="box">
+    <el-row class="container">
+        <header-list></header-list>
+        <el-col :span="24" class="main">
+            <nav-list></nav-list>
+            <section class="content-container">
+                <div class="grid-content bg-purple-light">
+                    <el-col :span="24" class="breadcrumb-container">
+                        <el-breadcrumb separator="/">
+                            <el-breadcrumb-item>首页</el-breadcrumb-item>
+                            <el-breadcrumb-item>外呼管理</el-breadcrumb-item>
+                            <el-breadcrumb-item>外呼记录</el-breadcrumb-item>
+                        </el-breadcrumb>
+                    </el-col>
+                    <el-col :span="24" class="content-wrapper">
+                        <!-- 主体内容 -->
+                            <!--以下是查询所需字段开始-->
+                            <div class="search">
+                                <!-- 下拉选择清单号 -->
+                                <el-select v-model="customerData" placeholder="请选择批次数据">
+                                    <el-option v-for="item in options" :label="item.label" :value="item.value">
+                                    </el-option>
+                                </el-select>
+                                <!--客户姓名-->
+                                <el-input v-model="customername" placeholder="请输入姓名" class="comSty"></el-input>
+                                <!--呼叫结果-->
+                                <el-select v-model="customerData" placeholder="请选择呼叫结果">
+                                    <el-option label="接听" value="接听"></el-option>
+                                    <el-option label="空号" value="空号"></el-option>
+                                    <el-option label="拒接" value="拒接"></el-option>
+                                    <el-option label="未接听" value="未接听"></el-option>
+                                    <el-option label="关机" value="关机"></el-option>
+                                    <el-option label="停机" value="停机"></el-option>
+                                </el-select>
+                                <!---->
+                                <!---->
+                                <!-- <el-button>查询用户信息</el-button> -->
+                            </div>
+
+
+                            <!--以下是查询所需字段结束-->
+
+                            <!-- 上分页 -->
+                            <!-- <el-col :span="24" class="toolbar">
+                                  <div class="block">
+                                      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage1" :page-size="20" layout="total, prev, pager, next, jumper" :total="500" style="float:right;">
+                                      </el-pagination>
+                                  </div>
+                              </el-col>  -->  
+                            
+                            <!--列表-->
+                            <el-table :data="tableData3" border highlight-current-row style="width: 100%" @selection-change="handleSelectionChange">
+                                <el-table-column prop="customerId" label="客户ID"></el-table-column>
+                                <el-table-column width="70" prop="customername" label="姓名"></el-table-column>
+                                <el-table-column width="70" prop="gender" label="性别"></el-table-column>
+                                <el-table-column width="70" prop="label" label="标签"></el-table-column>
+                                <el-table-column prop="customerPhone" label="手机号码"></el-table-column>
+                                <el-table-column prop="startTime" label="开始时间"></el-table-column>
+                                <el-table-column prop="endTime" label="结束时间"></el-table-column>
+                                <el-table-column width="100" prop="customServiceId" label="客服昵称"></el-table-column>
+                                <el-table-column width="100" prop="answer" label="呼叫结果"></el-table-column>
+                                <el-table-column prop="labelrepeat" label="标签是否重复"></el-table-column>
+                                <el-table-column width="100" prop="dialtime" label="重复次数"></el-table-column>
+                                <el-table-column width="200" prop="remarks" label="备注"></el-table-column>
+                                <el-table-column width="200" prop="hangup" label="挂断位置"></el-table-column>
+
+                                <el-table-column label="绑定与解绑" width="140">
+                                    <template scope="scope">
+                                        <el-button size="small" @click="binding()">绑定</el-button>
+                                        <el-button size="small" @click="unbind()">解绑</el-button>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="210">
+                                    <template scope="scope">
+                                        <el-button @click="checkCurrent(scope.$index, scope.row)" type="text" size="small">查看</el-button>
+                                        <el-button type="text" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                                        <el-button type="text" size="small" @click="checkHistory(scope.$index, scope.row)">查看历史拨打记录</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <!--下分页-->
+                            <el-col :span="24" class="toolbar">
+                                <div class="block">
+                                    <!--<span class="demonstration">直接前往</span>-->
+                                    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                                                   :current-page="currentPage1" :page-size="20" layout="total, prev, pager, next, jumper"
+                                                   :total="500" style="float:right;">
+                                    </el-pagination>
+                                </div>
+                            </el-col>
+                            
+                            <!--编辑页面-->
+                            <el-dialog title="编辑" v-model="dialogFormVisible" :close-on-click-modal="false" v-cloak>
+                                <el-form :model="editForm" class="el-form el-form--inline">
+
+                                    <el-form-item label="客户姓名">
+                                        <el-input v-model="editForm.customername" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="客户性别">
+                                        <el-radio-group v-model="editForm.gender">
+                                            <el-radio label="man">男</el-radio>
+                                            <el-radio label="woman">女</el-radio>
+                                        </el-radio-group>
+                                    </el-form-item>
+
+                                    <el-form-item label="标签是否重复">
+                                        <el-radio-group v-model="editForm.labelrepeat">
+                                            <el-radio label="yes">是</el-radio>
+                                            <el-radio label="no">否</el-radio>
+                                        </el-radio-group>
+                                    </el-form-item>
+
+                                    <el-form-item label="手机号码">
+                                        <el-input v-model="editForm.customerPhone" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="接听结果">
+                                        <el-select v-model="editForm.answer">
+                                            <el-option label="接听" value="接听"></el-option>
+                                            <el-option label="空号" value="空号"></el-option>
+                                            <el-option label="拒接" value="拒接"></el-option>
+                                            <el-option label="未接听" value="未接听"></el-option>
+                                            <el-option label="关机" value="关机"></el-option>
+                                            <el-option label="停机" value="停机"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+
+                                    <el-form-item label="备注">
+                                        <el-input v-model="editForm.remarks" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="挂断位置">
+                                        <el-select v-model="editForm.hangup" placeholder="请选择挂断位置">
+                                            <el-option label="如果近期有需求" value="如果近期有需求"></el-option>
+                                            <el-option label="参加活动可以获得多重购车优惠" value="参加活动可以获得多重购车优惠"></el-option>
+                                            <el-option label="本次活动有四大高端品牌可供选择" value="本次活动有四大高端品牌可供选择"></el-option>
+                                            <el-option label="我们在本月或下月将举行高端车型试乘试驾活动" value="我们在本月或下月将举行高端车型试乘试驾活动"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-form>
+                                <div slot="footer" class="dialog-footer">
+                                    <el-button @click="dialogFormVisible = false">取 消</el-button>
+                                    <el-button type="primary" @click="onSubmit" :loading="editLoading">确 定</el-button>
+                                </div>
+                            </el-dialog>
+
+                            <!-- 新增页面 -->
+                            <el-dialog title="编辑" v-model="dialogFormVisible" :close-on-click-modal="false" v-cloak>
+                                <el-form :model="editForm" class="el-form el-form--inline">
+
+                                    <el-form-item label="客户姓名">
+                                        <el-input v-model="editForm.customername" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="客户性别">
+                                        <el-radio-group v-model="editForm.gender">
+                                            <el-radio label="man">男</el-radio>
+                                            <el-radio label="woman">女</el-radio>
+                                        </el-radio-group>
+                                    </el-form-item>
+
+                                    <el-form-item label="标签是否重复">
+                                        <el-radio-group v-model="editForm.labelrepeat">
+                                            <el-radio label="yes">是</el-radio>
+                                            <el-radio label="no">否</el-radio>
+                                        </el-radio-group>
+                                    </el-form-item>
+
+                                    <el-form-item label="手机号码">
+                                        <el-input v-model="editForm.customerPhone" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="接听结果">
+                                        <el-select v-model="editForm.answer">
+                                            <el-option label="接听" value="接听"></el-option>
+                                            <el-option label="空号" value="空号"></el-option>
+                                            <el-option label="拒接" value="拒接"></el-option>
+                                            <el-option label="未接听" value="未接听"></el-option>
+                                            <el-option label="关机" value="关机"></el-option>
+                                            <el-option label="停机" value="停机"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+
+                                    <el-form-item label="备注">
+                                        <el-input v-model="editForm.remarks" auto-complete="off"></el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="挂断位置">
+                                        <el-select v-model="editForm.hangup" placeholder="请选择挂断位置">
+                                            <el-option label="如果近期有需求" value="如果近期有需求"></el-option>
+                                            <el-option label="参加活动可以获得多重购车优惠" value="参加活动可以获得多重购车优惠"></el-option>
+                                            <el-option label="本次活动有四大高端品牌可供选择" value="本次活动有四大高端品牌可供选择"></el-option>
+                                            <el-option label="我们在本月或下月将举行高端车型试乘试驾活动" value="我们在本月或下月将举行高端车型试乘试驾活动"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-form>
+                                <div slot="footer" class="dialog-footer">
+                                    <el-button @click="dialogFormVisible = false">取 消</el-button>
+                                    <el-button type="primary" @click="onSubmit" :loading="editLoading">确 定</el-button>
+                                </div>
+                            </el-dialog>
+                            <!--退出按钮页面-->
+                            <el-dialog title="提示" v-model="dialogQuit" size="tiny" v-cloak>
+                              <span>确认退出吗？</span>
+                              <span slot="footer" class="dialog-footer">
+                                <el-button @click="dialogQuit = false">取 消</el-button>
+                                <el-button type="primary" @click="surequit">确 定</el-button>
+                              </span>
+                            </el-dialog>
+
+                    </el-col>
+                </div>
+            </section>
+        </el-col>
+    </el-row>
+    
+</div>
+</body>
+<script>
+    /*"use strict";*/
+    new Vue({
+        el: '#box',
+        data: {
+            customername:'',
+            options: [{
+                      value: 'option1',
+                      label: '第一批客户信息'
+                    }, {
+                      value: 'option2',
+                      label: '第二批客户信息'
+                    }, {
+                      value: 'option3',
+                      label: '第三批客户信息'
+                    }, {
+                      value: 'option4',
+                      label: '第四批客户信息'
+                    }, {
+                      value: 'option5',
+                      label: '第五批客户信息'
+                    }],//下拉列表展示几批信息
+            customerData: 'option2',
+            tableData3: [
+                {
+                    customerId: '263118',
+                    customername: '333',
+                    gender: '',
+                    label: '',
+                    customerPhone: '',
+                    customServiceId: 'sales1',
+                    startTime: '2016-05-05 12:31:23',
+                    endTime: '2016-05-05 12:32:23',
+                    answer: '接听',
+                    labelrepeat: '',
+                    dialtime: '2',
+                    remarks: '不敢兴趣兴趣',
+                    hangup: '不需要'
+                }, {
+                    customerId: '67113',
+                    customername: '',
+                    gender: '',
+                    label: '',
+                    customerPhone: '',
+                    customServiceId: 'sales1',
+                    startTime: '2016-05-06 14:11:23',
+                    endTime: '2016-05-06 14:15:23',
+                    answer: '停机',
+                    labelrepeat: '',
+                    dialtime: '1',
+                    remarks: '',
+                    hangup: '您好'
+                }
+            ],
+            dialogQuit:false,
+            editLoading: false,
+            multipleSelection: [],
+            currentPage1: 1,
+            dialogFormVisible: false,
+            editForm: {
+                customername: '',
+                hangup: '',
+                gender: '',
+                labelrepeat: '',
+                customerPhone: '',
+                answer: '',
+                remarks: ''
+            }
+        },
+        methods: {
+            handleSelectionChange: function (val) {
+                this.multipleSelection = val;
+                console.log(val)
+            },
+            handleEdit: function (index, row) {
+                //编辑按钮
+                this.dialogFormVisible = true;
+                this.editForm = Object.assign({}, row);
+                console.log(index, row);
+            },
+            handleAdd: function (index, row) {
+                //新增按钮
+                console.log(1);
+                this.dialogFormVisible = true;
+                this.editForm = Object.assign({}, row);
+                console.log(index, row);
+            },
+            handleSizeChange: function (val) {
+                console.log('每页 ${val} 条');
+            },
+            handleCurrentChange: function (val) {
+                this.currentPage1 = val;
+                console.log('当前页: ${val}');
+            },
+            onSubmit: function () {
+                console.log('submit!');
+                this.dialogFormVisible = false
+            },
+            binding: function () {
+                alert('绑定')
+            },
+            unbind: function () {
+                alert('解除绑定')
+            },
+            quit:function(){
+              //退出按钮
+                this.dialogQuit=true;
+            },
+            surequit:function(){
+                this.dialogQuit = false;
+                window.location="login.html"
+            },
+            checkCurrent:function(){
+            	alert("修改当前拨打信息")
+            },
+            checkHistory:function(){
+            	alert("修改历史拨打记录")
+            }
+
+        }
+    })
+</script>
+</html>
